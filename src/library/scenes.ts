@@ -24,7 +24,7 @@ function withBackground(p: Project, presetId: string): Project {
   p.stage.width = 1280;
   p.stage.height = 720;
   const b = BACKGROUND_PRESETS.find((x) => x.id === presetId)!;
-  p.background = { effect: b.effect, params: { ...b.params }, color: b.color ?? p.background.color };
+  p.background = { ...p.background, effect: b.effect, params: { ...b.params }, color: b.color ?? p.background.color };
   return p;
 }
 

@@ -78,7 +78,24 @@ export function ScenePanel() {
             <ColorField value={background.color} onChange={(color) => edit((p) => void (p.background.color = color), 'bg-color')} />
           </Row>
         )}
-        {background.effect && <EffectParams effect={background.effect} params={background.params} />}
+        {background.effect && (
+          <>
+            <Row label="Speed" hint="Multiplies how fast the background moves. Whole numbers (and 0) loop seamlessly with the timeline.">
+              <Slider value={background.speed ?? 1} min={0} max={4} step={0.05} onChange={(speed) => edit((p) => void (p.background.speed = speed), 'bg-speed')} />
+            </Row>
+            <div className="speed-presets">
+              {[0, 0.5, 1, 2, 3].map((v) => (
+                <button key={v} className={(background.speed ?? 1) === v ? 'on' : ''} onClick={() => edit((p) => void (p.background.speed = v))}>
+                  {v === 0 ? 'Freeze' : `${v}×`}
+                </button>
+              ))}
+            </div>
+            {!Number.isInteger(background.speed ?? 1) && (
+              <p className="muted small">At {background.speed}× the background won’t line up when the video loops. Use a whole number for a seamless loop.</p>
+            )}
+            <EffectParams effect={background.effect} params={background.params} />
+          </>
+        )}
       </Section>
 
       <Section title="Camera">
@@ -229,7 +246,7 @@ function BackgroundTile({ preset, active }: { preset: BackgroundPreset; active: 
       className={`bg-tile ${active ? 'on' : ''}`}
       onClick={() =>
         useStore.getState().edit((p) => {
-          p.background = { effect: preset.effect, params: { ...preset.params }, color: preset.color ?? p.background.color };
+          p.background = { ...p.background, effect: preset.effect, params: { ...preset.params }, color: preset.color ?? p.background.color };
         })
       }
     >

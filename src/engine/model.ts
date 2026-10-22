@@ -139,6 +139,8 @@ export interface Background {
   effect: string | null;
   params: Record<string, unknown>;
   color: string;
+  /** Playback rate of the effect; 1 runs its loop once per stage duration. */
+  speed: number;
 }
 
 export interface StageSettings {
@@ -227,7 +229,7 @@ export function blankProject(): Project {
     version: 1,
     name: 'Untitled',
     stage: { width: 1920, height: 1080, duration: 6, fps: 60 },
-    background: { effect: 'mesh-gradient', params: {}, color: '#0c0d14' },
+    background: { effect: 'mesh-gradient', params: {}, color: '#0c0d14', speed: 1 },
     camera: { preset: 'static', intensity: 1, target: null, at: 1, duration: 1.2, zoom: 1.8 },
     cursor: { enabled: false, style: 'arrow', start: { x: 1500, y: 900 }, steps: [], size: 1 },
     layers: [],

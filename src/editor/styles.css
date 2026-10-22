@@ -1253,3 +1253,20 @@ kbd {
   margin: 0;
   color: var(--accent-2);
 }
+
+.speed-presets {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+.speed-presets button {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 0;
+  font-size: 11.5px;
+}
+.speed-presets button.on {
+  border-color: var(--accent);
+  color: var(--accent-2);
+}

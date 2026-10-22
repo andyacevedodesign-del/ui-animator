@@ -15,7 +15,28 @@ export const meta = {
     { key: 'cloudAmount', label: 'Cloud cover', group: 'Sky', type: 'range', min: 0, max: 1, step: 0.01, default: 0.62 },
     { key: 'cloudStretch', label: 'Streak length', group: 'Sky', type: 'range', min: 1, max: 6, step: 0.1, default: 3.2 },
     { key: 'cloudAngle', label: 'Streak angle', group: 'Sky', type: 'range', min: -60, max: 60, step: 1, default: 18 },
-    { key: 'cloudSoftness', label: 'Sky blur', group: 'Sky', type: 'range', min: 0.2, max: 1, step: 0.01, default: 0.7 },
+    {
+      key: 'skyBlur',
+      label: 'Sky blur',
+      group: 'Sky',
+      type: 'range',
+      min: 0,
+      max: 1,
+      step: 0.01,
+      default: 0.5,
+      hint: 'Removes fine detail evenly, like a lens out of focus. 0 keeps crisp wisps.',
+    },
+    {
+      key: 'cloudWarp',
+      label: 'Turbulence',
+      group: 'Sky',
+      type: 'range',
+      min: 0,
+      max: 1.5,
+      step: 0.01,
+      default: 0.45,
+      hint: 'How much the streaks billow and fold. Lower for smoother, calmer bands.',
+    },
     {
       key: 'skyCycles',
       label: 'Sky drift cycles',
@@ -31,7 +52,17 @@ export const meta = {
     { key: 'flowerGlow', label: 'Flower glow', group: 'Flowers', type: 'color', default: '#ffb08a' },
     { key: 'flowers', label: 'Flowers', group: 'Flowers', type: 'range', min: 0, max: 16, step: 1, default: 6 },
     { key: 'flowerSize', label: 'Size', group: 'Flowers', type: 'range', min: 0.02, max: 0.2, step: 0.005, default: 0.075 },
-    { key: 'flowerBlur', label: 'Defocus', group: 'Flowers', type: 'range', min: 0.1, max: 1, step: 0.01, default: 0.55 },
+    {
+      key: 'flowerBlur',
+      label: 'Flower blur',
+      group: 'Flowers',
+      type: 'range',
+      min: 0,
+      max: 1,
+      step: 0.01,
+      default: 0.35,
+      hint: 'Soft Gaussian defocus. Low is a crisp bloom, high melts into a glow.',
+    },
     { key: 'seed', label: 'Arrangement', group: 'Flowers', type: 'range', min: 0, max: 50, step: 1, default: 7 },
     { key: 'wind', label: 'Wind strength', group: 'Wind', type: 'range', min: 0, max: 1, step: 0.01, default: 0.45 },
     {
@@ -66,7 +97,8 @@ uniform vec3 u_cloud;
 uniform float u_cloudAmount;
 uniform float u_stretch;
 uniform float u_cloudAngle;
-uniform float u_soft;
+uniform float u_skyBlur;
+uniform float u_warp;
 uniform vec3 u_flower;
 uniform vec3 u_glow;
 uniform float u_count;
@@ -90,10 +122,21 @@ float noise(vec2 p) {
   vec2 u = f * f * (3.0 - 2.0 * f);
   return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y);
 }
-float fbm(vec2 p) {
-  float s = 0.0, a = 0.5;
-  for (int i = 0; i < 4; i++) { s += a * noise(p); p = p * 2.03 + 17.1; a *= 0.5; }
-  return s;
+// Value-noise fbm seen through a Gaussian blur of width \`blur\`. Blurring
+// multiplies each frequency band by exp(-(f*sigma)^2), so fine octaves fade
+// out smoothly instead of being clipped — an even, lens-like softness.
+float fbm(vec2 p, float blur) {
+  float s = 0.0, a = 0.5, f = 1.0, norm = 0.0;
+  for (int i = 0; i < 5; i++) {
+    float w = exp(-pow(f * blur, 2.0));
+    s += a * w * (noise(p) - 0.5);
+    norm += a * w;
+    p = p * 2.03 + 17.1;
+    a *= 0.5;
+    f *= 2.03;
+  }
+  // Re-normalise so blurring softens shape, not cloud cover.
+  return 0.5 + 0.5 * s / max(norm, 0.0001);
 }
 
 void main() {
@@ -108,10 +151,13 @@ void main() {
   vec2 q = rot * p;
   q.x /= u_stretch;                         // long streaks along the wind
   vec2 drift = vec2(cos(u_angle), sin(u_angle)) * 0.45;
-  vec2 warp = vec2(fbm(q * 2.0 + drift), fbm(q * 2.0 - drift + 3.7));
-  float c = fbm(q * 2.4 + warp * 0.9 + drift * 0.6);
-  float lo = mix(0.75, 0.25, u_cloudAmount);
-  float cloud = smoothstep(lo - 0.25 * u_soft, lo + 0.25 * u_soft, c);
+  float sb = u_skyBlur * 1.3;
+  // The warp field is always smoother than the clouds, or it folds them into creases.
+  vec2 warp = vec2(fbm(q * 1.6 + drift, sb + 0.6), fbm(q * 1.6 - drift + 3.7, sb + 0.6)) - 0.5;
+  float c = fbm(q * 2.4 + warp * u_warp * 2.0 + drift * 0.6, sb);
+  float lo = mix(0.62, 0.38, u_cloudAmount);
+  float width = mix(0.04, 0.22, u_skyBlur);
+  float cloud = smoothstep(lo - width, lo + width, c);
   col = mix(col, u_cloud, cloud * 0.9);
 
   // --- flowers: defocused blooms swaying in the wind.
@@ -131,12 +177,16 @@ void main() {
     d.x /= 1.0 + 0.35 * h1(fi + 3.0);
     // Two overlapping lobes read as a blossom rather than a dot.
     vec2 lobe = vec2(size * 0.45, size * 0.1) * (h1(fi + 5.0) > 0.5 ? 1.0 : -1.0);
-    float r = min(length(d - lobe * 0.5), length(d + lobe * 0.5)) / size;
-    float edge = mix(0.15, 1.1, u_blur);
-    float core = 1.0 - smoothstep(1.0 - edge, 1.0 + edge, r);
-    float halo = exp(-r * r * 1.2) * 0.35;
-    vec3 tint = mix(u_flower, u_glow, smoothstep(0.0, 1.0, r));
-    col = mix(col, tint, clamp(core + halo, 0.0, 1.0));
+    // A defocused blossom is its shape convolved with a Gaussian: model it as
+    // two Gaussian lobes, with the spread growing with blur. No hard edge, no ring.
+    float sigma = size * mix(0.38, 1.15, u_blur);
+    vec2 a1 = (d - lobe * 0.5) / sigma;
+    vec2 a2 = (d + lobe * 0.5) / sigma;
+    float g = exp(-0.5 * dot(a1, a1)) + exp(-0.5 * dot(a2, a2));
+    // Soft saturation: a dense core when sharp, a translucent glow when very blurred.
+    float alpha = 1.0 - exp(-g * mix(5.0, 1.4, u_blur));
+    vec3 tint = mix(u_glow, u_flower, alpha);
+    col = mix(col, tint, alpha);
   }
 
   // --- finish: milky haze toward the bottom, then grain.
@@ -168,7 +218,8 @@ export function create(canvas) {
         u_cloudAmount: P.cloudAmount,
         u_stretch: P.cloudStretch,
         u_cloudAngle: P.cloudAngle,
-        u_soft: P.cloudSoftness,
+        u_skyBlur: P.skyBlur,
+        u_warp: P.cloudWarp,
         u_flower: rgb(P.flowerColor),
         u_glow: rgb(P.flowerGlow),
         u_count: Math.min(MAX_FLOWERS, P.flowers),

@@ -153,7 +153,8 @@ export class Renderer {
         this.bg.setSize(W, H, scale);
         this.bgSize = size;
       }
-      this.bg.render(t, project.background.params, project.stage.duration);
+      // Speed scales time against the same loop length, so whole-number speeds stay seamless.
+      this.bg.render(t * (project.background.speed ?? 1), project.background.params, project.stage.duration);
       const z = Math.max(1, 1 + (cam.zoom - 1) * 0.25);
       ctx.save();
       ctx.translate(canvas.width / 2, canvas.height / 2);

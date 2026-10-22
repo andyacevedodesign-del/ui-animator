@@ -46,6 +46,10 @@ which runs in the visitor's browser, so the deployment needs nothing extra.
   (out-of-focus flowers swaying in the wind under a drifting sky), **Mesh
   Gradient** and **Dot Grid**. The Scene tab shows them as a grid of named
   looks, and every parameter is editable.
+  **Speed** (Freeze, 0.5×, 1×, 2×, 3×, or any value up to 4×) sets how fast the
+  background moves. Whole numbers keep the video loop seamless. Blurred Summer
+  has separate **Sky blur**, **Turbulence** and **Flower blur** controls. Its
+  blur is modelled as a Gaussian, so it softens evenly instead of rippling.
 - **Camera (three.js):** static, tilt reveal, push in, pull out, float, orbit,
   isometric, and focus on a layer. Top-level layers have **3D lift**, so they
   separate from the page when the camera tilts.
