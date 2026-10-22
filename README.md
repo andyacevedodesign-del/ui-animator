@@ -9,6 +9,21 @@ npm install
 npm run dev
 ```
 
+## Deploy to Vercel
+
+The app is a static Vite build, with no server and no environment variables.
+
+1. On vercel.com, choose **Add New → Project** and import `ui-animator`.
+2. Vercel reads `vercel.json` (framework Vite, `npm ci`, `npm run build`,
+   output `dist`), so leave the settings at their defaults and click **Deploy**.
+
+To deploy from the command line: `npx vercel` (preview) or `npx vercel --prod`.
+
+Node 22 is pinned in `package.json`. Hashed bundles in `/assets` are cached
+for a year. The background modules in `/backgrounds` aren't hashed, so they
+get a one-hour cache. Video export needs WebCodecs (Chrome, Edge, Safari 16.4+),
+which runs in the visitor's browser, so the deployment needs nothing extra.
+
 ## What you can do
 
 - **Build UI like in Figma.** Frames with **auto layout** (row/column, gap,
