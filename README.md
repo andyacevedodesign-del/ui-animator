@@ -32,6 +32,9 @@ which runs in the visitor's browser, so the deployment needs nothing extra.
   selection (double-click to go deeper, Esc to go up), drag-to-reorder inside
   auto layout, and drag-and-drop for images. ⌘G frames the selection and ⇧A wraps it in
   auto layout.
+- **Shapes for airy looks:** a **Sparkle** shape (4 to 12 points, from needle-thin
+  to full), **radial gradient** fills, and a **Layer blur** on any layer. The
+  ready-made Sparkle, Orb, Aura blob and Swoosh components use them.
 - **Start from components:** feature card, toast, button, badge, stat card, chat
   message, search bar, toggle, checklist, progress, dialog, avatar stack, phone
   and browser frames. All are built with auto layout, so editing the text reflows them.
@@ -42,18 +45,23 @@ which runs in the visitor's browser, so the deployment needs nothing extra.
   frame, **stagger** plays the preset on each child in turn. **Recipes** apply common
   combinations in one click. You drag the bars on the timeline to retime them.
 - **Backgrounds** come from Background Animator's effect modules (Perspective
-  Grid, Infinity Cove, Aurora, Wave Lines, Clouds), plus **Blurred Summer**
+  Grid, Infinity Cove, Aurora, Wave Lines, Clouds), plus **Y2K Mist** (airy
+  colour swooshes, glowing 4-, 6- and 8-point sparkles, ringed orbs and a looping
+  light ribbon, in six palettes: Pigment mist, Holo meadow, Night aura, Cotton
+  candy, Chrome dream and Sunset tape, or your own colours), **Blurred Summer**
   (out-of-focus flowers swaying in the wind under a drifting sky), **Mesh
   Gradient** and **Dot Grid**. The Scene tab shows them as a grid of named
   looks, and every parameter is editable.
   **Speed** (Freeze, 0.5×, 1×, 2×, 3×, or any value up to 4×) sets how fast the
   background moves. Whole numbers keep the video loop seamless. Blurred Summer
-  has separate **Sky blur**, **Turbulence** and **Flower blur** controls. Its
-  blur is modelled as a Gaussian, so it softens evenly instead of rippling.
+  and Y2K Mist have a true **Layer blur**: the picture is rendered sharp, then
+  run through a two-pass Gaussian blur, like a layer blur in Figma. Grain goes on
+  after the blur. Y2K Mist can keep its sparkles and ribbon sharp on top of
+  the blur.
 - **Camera (three.js):** static, tilt reveal, push in, pull out, float, orbit,
   isometric, and focus on a layer. Top-level layers have **3D lift**, so they
   separate from the page when the camera tilts.
-- **Cursor:** a scripted pointer or touch dot moves to layers and clicks
+- **Cursor** (its own tab, or click the Cursor row on the timeline): a scripted pointer or touch dot moves to layers and clicks
   them. Clicked layers press in, and a ripple plays.
 - **Export** MP4 / WebM (WebCodecs + mediabunny) at 0.5×, 1× or 2×, 24, 30 or 60 fps, or the
   current frame as a PNG. Projects save as `.uianim.json` and autosave to the browser.

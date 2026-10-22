@@ -3,7 +3,7 @@
  * layout so editing text or adding a row reflows like it would in Figma.
  */
 import type { Layer } from '../engine/model';
-import { defaultLayout } from '../engine/model';
+import { defaultLayout, makeLayer } from '../engine/model';
 import { col, ellipse, frame, icon, iconChip, linear, rect, row, shadow, solid, text } from './build';
 
 const INK = '#15151c';
@@ -201,6 +201,30 @@ export function browser(): Layer {
   ]);
 }
 
+/* ------------------------------------------------------------ y2k / airy -- */
+
+export function sparkle(from = '#ffffff', to = 'rgba(167,139,250,0.9)'): Layer {
+  return frame('Sparkle', { w: 160, h: 160, fill: null, radius: 0, clip: false }, [
+    ellipse('Halo', { w: 160, h: 160, fill: { type: 'radial', from: 'rgba(255,255,255,0.75)', to: 'rgba(255,255,255,0)' }, blur: 18 }),
+    makeLayer('star', { name: 'Star', x: 10, y: 10, w: 140, h: 140, points: 4, inner: 0.08, fill: { type: 'radial', from, to }, blur: 2 }),
+  ]);
+}
+
+export function orb(core = '#ffe08a', ring = '#ff8a5c'): Layer {
+  return frame('Orb', { w: 120, h: 120, fill: null, radius: 0, clip: false }, [
+    ellipse('Halo', { w: 120, h: 120, fill: { type: 'radial', from: 'rgba(255,255,255,0.6)', to: 'rgba(255,255,255,0)' }, blur: 10 }),
+    ellipse('Ring', { x: 30, y: 30, w: 60, h: 60, fill: { type: 'radial', from: core, to: ring }, stroke: { color: ring, width: 6 }, blur: 4 }),
+  ]);
+}
+
+export function auraBlob(from = '#f9a8d4', to = 'rgba(253,230,138,0)'): Layer {
+  return ellipse('Aura', { w: 520, h: 300, rotation: -18, fill: { type: 'radial', from, to }, blur: 40 });
+}
+
+export function swoosh(color = '#f6b6c8'): Layer {
+  return rect('Swoosh', { w: 560, h: 90, radius: 45, rotation: -12, fill: { type: 'linear', from: 'rgba(255,255,255,0)', to: color, angle: 90 }, blur: 28 });
+}
+
 export interface ComponentEntry {
   id: string;
   name: string;
@@ -222,4 +246,8 @@ export const COMPONENTS: ComponentEntry[] = [
   { id: 'avatars', name: 'Avatar stack', make: avatarStack },
   { id: 'phone', name: 'Phone', make: phone },
   { id: 'browser', name: 'Browser window', make: browser },
+  { id: 'sparkle', name: 'Sparkle', make: () => sparkle() },
+  { id: 'orb', name: 'Orb', make: () => orb() },
+  { id: 'aura', name: 'Aura blob', make: () => auraBlob() },
+  { id: 'swoosh', name: 'Swoosh', make: () => swoosh() },
 ];

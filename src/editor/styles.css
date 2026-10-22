@@ -1270,3 +1270,14 @@ kbd {
   border-color: var(--accent);
   color: var(--accent-2);
 }
+
+.layer-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px 6px 14px;
+}
+.btn.small {
+  padding: 3px 8px;
+  font-size: 11.5px;
+}

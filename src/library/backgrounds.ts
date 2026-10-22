@@ -8,6 +8,22 @@ export interface BackgroundPreset {
 }
 
 export const BACKGROUND_PRESETS: BackgroundPreset[] = [
+  { id: 'pigment-mist', name: 'Pigment mist', effect: 'y2k-mist', params: { palette: 'pigment-mist', stars: 2, points: '6', starSharpness: 7, orbs: 2, haze: 0.45 } },
+  {
+    id: 'holo-meadow',
+    name: 'Holo meadow',
+    effect: 'y2k-mist',
+    params: { palette: 'holo-meadow', stars: 1, points: '4', starSize: 0.22, orbs: 3, orbSize: 0.04, ribbon: true, ribbonLoops: 1, ribbonY: 0.12, haze: 0.2, grain: 0.1 },
+  },
+  {
+    id: 'night-aura',
+    name: 'Night aura',
+    effect: 'y2k-mist',
+    params: { palette: 'night-aura', stars: 3, points: 'mix', starGlow: 1, orbs: 0, swooshes: 4, swooshWidth: 0.16, blur: 0.75, haze: 0, grain: 0.05 },
+  },
+  { id: 'cotton-candy', name: 'Cotton candy', effect: 'y2k-mist', params: { palette: 'cotton-candy', stars: 4, points: '4', starSize: 0.08, orbs: 4, haze: 0.35 } },
+  { id: 'chrome-dream', name: 'Chrome dream', effect: 'y2k-mist', params: { palette: 'chrome-dream', stars: 2, points: '8', ribbon: true, ribbonLoops: 2, ribbonY: -0.1, orbs: 0, haze: 0.25 } },
+  { id: 'sunset-tape', name: 'Sunset tape', effect: 'y2k-mist', params: { palette: 'sunset-tape', stars: 3, points: '4', orbs: 2, blur: 0.65, haze: 0.05, grain: 0.07 } },
   { id: 'blurred-summer', name: 'Blurred summer', effect: 'blurred-summer', params: {} },
   {
     id: 'golden-hour',

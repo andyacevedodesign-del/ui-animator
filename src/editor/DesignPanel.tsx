@@ -99,14 +99,28 @@ function AlignBar({ ids }: { ids: string[] }) {
 
 function PaintEditor({ paint, onChange, allowNone = true }: { paint: Paint | null; onChange: (p: Paint | null) => void; allowNone?: boolean }) {
   const kind = paint ? paint.type : 'none';
-  const base = paint?.type === 'solid' ? paint.color : paint?.type === 'linear' ? paint.from : '#7c3aed';
+  const base = paint?.type === 'solid' ? paint.color : paint ? paint.from : '#7c3aed';
+  const end = paint && paint.type !== 'solid' ? paint.to : '#22d3ee';
   return (
     <>
       <Segmented
         value={kind}
-        options={[...(allowNone ? [{ value: 'none' as const, label: 'None' }] : []), { value: 'solid' as const, label: 'Solid' }, { value: 'linear' as const, label: 'Gradient' }]}
+        options={[
+          ...(allowNone ? [{ value: 'none' as const, label: 'None' }] : []),
+          { value: 'solid' as const, label: 'Solid' },
+          { value: 'linear' as const, label: 'Linear' },
+          { value: 'radial' as const, label: 'Radial' },
+        ]}
         onChange={(k) =>
-          onChange(k === 'none' ? null : k === 'solid' ? { type: 'solid', color: base } : { type: 'linear', from: base, to: paint?.type === 'linear' ? paint.to : '#22d3ee', angle: 135 })
+          onChange(
+            k === 'none'
+              ? null
+              : k === 'solid'
+                ? { type: 'solid', color: base }
+                : k === 'linear'
+                  ? { type: 'linear', from: base, to: end, angle: 135 }
+                  : { type: 'radial', from: base, to: end },
+          )
         }
       />
       {paint?.type === 'solid' && <ColorField value={paint.color} onChange={(color) => onChange({ type: 'solid', color })} />}
@@ -119,6 +133,15 @@ function PaintEditor({ paint, onChange, allowNone = true }: { paint: Paint | nul
           <Row label="Angle">
             <Slider value={paint.angle} min={0} max={360} step={1} onChange={(angle) => onChange({ ...paint, angle })} />
           </Row>
+        </>
+      )}
+      {paint?.type === 'radial' && (
+        <>
+          <div className="pair">
+            <ColorField value={paint.from} onChange={(from) => onChange({ ...paint, from })} />
+            <ColorField value={paint.to} onChange={(to) => onChange({ ...paint, to })} />
+          </div>
+          <p className="muted small">Centre → edge. Use an edge colour with 0 alpha (e.g. rgba(255,180,220,0)) for a soft glow.</p>
         </>
       )}
     </>
@@ -155,6 +178,9 @@ function LayerInspector({ layer: l }: { layer: Layer }) {
         {inLayout && <p className="muted small">Positioned by the parent’s auto layout. Drag to reorder.</p>}
         <Row label="Opacity">
           <Slider value={l.opacity} min={0} max={1} step={0.01} onChange={(opacity) => update({ opacity })} />
+        </Row>
+        <Row label="Layer blur" hint="An even Gaussian blur on this layer, in stage pixels — like Figma’s layer blur.">
+          <Slider value={l.blur ?? 0} min={0} max={200} step={1} onChange={(blur) => update({ blur })} />
         </Row>
         {topLevel && (
           <Row label="3D lift" hint="Distance toward the camera in 3D shots. Lifted layers separate from the page when the camera tilts.">
@@ -313,6 +339,21 @@ function LayerInspector({ layer: l }: { layer: Layer }) {
               }}
             />
           </label>
+        </Section>
+      )}
+
+      {l.type === 'star' && (
+        <Section title="Sparkle">
+          <Row label="Points">
+            <Segmented
+              value={String(l.points ?? 4)}
+              options={['4', '5', '6', '8', '12'].map((v) => ({ value: v, label: v }))}
+              onChange={(v) => update({ points: Number(v) })}
+            />
+          </Row>
+          <Row label="Body" hint="0 gives needle-thin concave rays, higher values a fuller star">
+            <Slider value={l.inner ?? 0.15} min={0} max={1} step={0.01} onChange={(inner) => update({ inner })} />
+          </Row>
         </Section>
       )}
 

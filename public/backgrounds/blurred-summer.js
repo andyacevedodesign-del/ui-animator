@@ -1,4 +1,5 @@
 import { createQuadRenderer, createStage, hexToRgba, resolveParams } from './_lib.js';
+import { createLayerBlur } from './_blur.js';
 
 export const meta = {
   id: 'blurred-summer',
@@ -9,6 +10,17 @@ export const meta = {
   duration: 10,
   vector: false,
   params: [
+    {
+      key: 'layerBlur',
+      label: 'Layer blur',
+      group: 'Blur',
+      type: 'range',
+      min: 0,
+      max: 160,
+      step: 1,
+      default: 36,
+      hint: 'An even Gaussian blur over the whole picture, like a layer blur in Figma. Measured in composition pixels, so it looks the same at any export size.',
+    },
     { key: 'skyTop', label: 'Sky top', group: 'Sky', type: 'color', default: '#3d9ccf' },
     { key: 'skyBottom', label: 'Sky bottom', group: 'Sky', type: 'color', default: '#9fd1dc' },
     { key: 'cloudColor', label: 'Cloud colour', group: 'Sky', type: 'color', default: '#f7e6d2' },
@@ -17,13 +29,13 @@ export const meta = {
     { key: 'cloudAngle', label: 'Streak angle', group: 'Sky', type: 'range', min: -60, max: 60, step: 1, default: 18 },
     {
       key: 'skyBlur',
-      label: 'Sky blur',
+      label: 'Sky softness',
       group: 'Sky',
       type: 'range',
       min: 0,
       max: 1,
       step: 0.01,
-      default: 0.5,
+      default: 0.3,
       hint: 'Removes fine detail evenly, like a lens out of focus. 0 keeps crisp wisps.',
     },
     {
@@ -54,13 +66,13 @@ export const meta = {
     { key: 'flowerSize', label: 'Size', group: 'Flowers', type: 'range', min: 0.02, max: 0.2, step: 0.005, default: 0.075 },
     {
       key: 'flowerBlur',
-      label: 'Flower blur',
+      label: 'Flower softness',
       group: 'Flowers',
       type: 'range',
       min: 0,
       max: 1,
       step: 0.01,
-      default: 0.35,
+      default: 0.15,
       hint: 'Soft Gaussian defocus. Low is a crisp bloom, high melts into a glow.',
     },
     { key: 'seed', label: 'Arrangement', group: 'Flowers', type: 'range', min: 0, max: 50, step: 1, default: 7 },
@@ -198,6 +210,7 @@ void main() {
 export function create(canvas) {
   const stage = createStage(canvas);
   const quad = createQuadRenderer(stage.gl, FRAGMENT);
+  const blur = createLayerBlur(stage.gl);
   const rgb = (hex) => hexToRgba(hex).slice(0, 3);
   return {
     setSize(width, height, pixelScale) {
@@ -207,9 +220,19 @@ export function create(canvas) {
       const P = resolveParams(meta, params);
       const loop = duration || meta.duration;
       const f = time / (loop > 0 ? loop : 1);
-      stage.clear(P.background, false);
-      quad.draw({
-        u_resolution: [canvas.width, canvas.height],
+      const gl = stage.gl;
+      blur.render({
+        width: canvas.width,
+        height: canvas.height,
+        sigma: P.layerBlur * 0.5 * stage.scale,
+        grain: P.grain,
+        seed: f,
+        paint: (w, h) => {
+          const [r, g, b] = hexToRgba(P.background);
+          gl.clearColor(r, g, b, 1);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          quad.draw({
+        u_resolution: [w, h],
         u_angle: 2 * Math.PI * f * P.skyCycles,
         u_gust: 2 * Math.PI * f * P.gustCycles,
         u_skyTop: rgb(P.skyTop),
@@ -227,11 +250,14 @@ export function create(canvas) {
         u_blur: P.flowerBlur,
         u_seed: P.seed,
         u_wind: P.wind,
-        u_grain: P.grain,
+        u_grain: 0,
         u_haze: P.haze,
+      });
+        },
       });
     },
     dispose() {
+      blur.dispose();
       quad.dispose();
     },
   };

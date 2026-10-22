@@ -6,8 +6,8 @@ import { DesignPanel } from './DesignPanel';
 import { ExportModal } from './ExportModal';
 import { LeftPanel } from './LeftPanel';
 import { parseProject, saveProjectFile } from './project';
-import { ScenePanel } from './ScenePanel';
-import { useStore, type RightTab } from './store';
+import { CursorPanel, ScenePanel } from './ScenePanel';
+import { clearAllLayers, useStore, type RightTab } from './store';
 import { Timeline } from './Timeline';
 import { Viewport } from './Viewport';
 import { layoutTree } from '../engine/layout';
@@ -67,6 +67,8 @@ function TopBar({ onExport }: { onExport: () => void }) {
             <hr />
             <button onClick={() => (setMenu(false), file.current?.click())}>Open project…</button>
             <button onClick={() => (setMenu(false), saveProjectFile(useStore.getState().project))}>Save project file</button>
+            <hr />
+            <button onClick={() => (setMenu(false), clearAllLayers())}>Clear all layers</button>
           </div>
         )}
         <input
@@ -121,6 +123,7 @@ function RightPanel() {
     { id: 'design', label: 'Design' },
     { id: 'animate', label: 'Animate' },
     { id: 'scene', label: 'Scene' },
+    { id: 'cursor', label: 'Cursor' },
   ];
   return (
     <aside className="right">
@@ -131,7 +134,7 @@ function RightPanel() {
           </button>
         ))}
       </div>
-      {tab === 'design' ? <DesignPanel /> : tab === 'animate' ? <AnimatePanel /> : <ScenePanel />}
+      {tab === 'design' ? <DesignPanel /> : tab === 'animate' ? <AnimatePanel /> : tab === 'scene' ? <ScenePanel /> : <CursorPanel />}
     </aside>
   );
 }

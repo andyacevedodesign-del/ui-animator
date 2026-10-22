@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import { layoutTree } from '../engine/layout';
 import { findLayer, findSiblings, makeLayer, pathTo, type Layer } from '../engine/model';
 import { COMPONENTS, type ComponentEntry } from '../library/components';
-import { useStore, type Tool } from './store';
+import { clearAllLayers, useStore, type Tool } from './store';
 import { componentThumb } from './thumbnails';
 import { addImageFile } from './Viewport';
 
-const TYPE_GLYPH: Record<Layer['type'], string> = { frame: '#', rect: '▢', ellipse: '◯', text: 'T', image: '▣', icon: '✦' };
+const TYPE_GLYPH: Record<Layer['type'], string> = { frame: '#', rect: '▢', ellipse: '◯', star: '✧', text: 'T', image: '▣', icon: '✦' };
 
 export function LeftPanel() {
   const [tab, setTab] = useState<'layers' | 'insert'>('insert');
@@ -60,6 +60,12 @@ function LayerTree() {
   if (!layers.length) return <div className="empty-panel muted">No layers yet.</div>;
   return (
     <div className="layer-tree" onDragEnd={() => (setDrop(null), setDragId(null))}>
+      <div className="layer-tools">
+        <span className="muted small">{layers.length} top-level</span>
+        <button className="btn ghost small" onClick={clearAllLayers} title="Remove every layer (undoable)">
+          Clear all
+        </button>
+      </div>
       {[...layers].reverse().map((l) => (
         <LayerRow key={l.id} layer={l} depth={0} drop={drop} setDrop={setDrop} setDragId={setDragId} onDrop={onDrop} />
       ))}
@@ -211,6 +217,9 @@ function InsertPanel() {
               <kbd>{t.key}</kbd>
             </button>
           ))}
+          <button onClick={() => insertLayer(makeLayer('star'))} title="Sparkle / star shape">
+            <span className="glyph">✧</span>Sparkle
+          </button>
           <button onClick={() => insertLayer(makeLayer('icon', { w: 48, h: 48, name: 'Icon / sparkle' }))} title="Icon">
             <span className="glyph">✦</span>Icon
           </button>

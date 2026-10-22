@@ -28,7 +28,7 @@ const CAMERAS: { id: CameraPreset; name: string; hint: string }[] = [
 export function ScenePanel() {
   const project = useStore((s) => s.project);
   const edit = useStore((s) => s.edit);
-  const { stage, background, camera, cursor } = project;
+  const { stage, background, camera } = project;
 
   return (
     <div className="panel-scroll">
@@ -127,7 +127,27 @@ export function ScenePanel() {
         )}
       </Section>
 
+    </div>
+  );
+}
+
+export function CursorPanel() {
+  const project = useStore((s) => s.project);
+  const edit = useStore((s) => s.edit);
+  const { cursor } = project;
+  return (
+    <div className="panel-scroll">
       <Section title="Cursor" action={<Toggle value={cursor.enabled} onChange={(enabled) => edit((p) => void (p.cursor.enabled = enabled))} />}>
+        {!cursor.enabled && (
+          <>
+            <p className="muted small">
+              A scripted pointer that glides to layers and clicks them. Clicked layers press in, and a ripple plays — handy for showing how a feature is used.
+            </p>
+            <button className="btn primary wide" onClick={() => edit((p) => void (p.cursor.enabled = true))}>
+              Turn on cursor
+            </button>
+          </>
+        )}
         {cursor.enabled && (
           <>
             <Row label="Style">
@@ -170,7 +190,7 @@ export function ScenePanel() {
           </>
         )}
       </Section>
-    </div>
+      </div>
   );
 }
 

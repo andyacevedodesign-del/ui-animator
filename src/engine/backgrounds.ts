@@ -32,7 +32,7 @@ export interface EffectModule {
   create(canvas: HTMLCanvasElement): EffectInstance;
 }
 
-export const EFFECT_IDS = ['blurred-summer', 'mesh-gradient', 'perspective-grid', 'infinity-cove', 'aurora-flow', 'wave-lines', 'dot-grid', 'drifting-clouds'] as const;
+export const EFFECT_IDS = ['y2k-mist', 'blurred-summer', 'mesh-gradient', 'perspective-grid', 'infinity-cove', 'aurora-flow', 'wave-lines', 'dot-grid', 'drifting-clouds'] as const;
 
 const base = () => (typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL) || '/';
 const modules = new Map<string, Promise<EffectModule>>();

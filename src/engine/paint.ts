@@ -29,6 +29,12 @@ function deviceScale(ctx: CanvasRenderingContext2D): number {
 
 function paintStyle(ctx: CanvasRenderingContext2D, p: Paint, w: number, h: number): string | CanvasGradient {
   if (p.type === 'solid') return p.color;
+  if (p.type === 'radial') {
+    const g = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) / 2);
+    g.addColorStop(0, p.from);
+    g.addColorStop(1, p.to);
+    return g;
+  }
   const a = (p.angle * Math.PI) / 180;
   const dx = Math.sin(a);
   const dy = Math.cos(a);
@@ -42,8 +48,30 @@ function paintStyle(ctx: CanvasRenderingContext2D, p: Paint, w: number, h: numbe
 function shapePath(ctx: CanvasRenderingContext2D, l: Layer, w: number, h: number) {
   ctx.beginPath();
   if (l.type === 'ellipse') ctx.ellipse(w / 2, h / 2, Math.max(0, w / 2), Math.max(0, h / 2), 0, 0, Math.PI * 2);
+  else if (l.type === 'star') starPath(ctx, w, h, l.points ?? 4, l.inner ?? 0.15);
   else if (l.radius > 0) ctx.roundRect(0, 0, w, h, Math.min(l.radius, w / 2, h / 2));
   else ctx.rect(0, 0, w, h);
+}
+
+/**
+ * A sparkle: tips on an ellipse filling the box, joined by curves pulled toward
+ * the centre. With `inner` at 0 the sides are fully concave (the classic
+ * four-point glint); raising it fattens the star toward a polygon.
+ */
+function starPath(ctx: CanvasRenderingContext2D, w: number, h: number, points: number, inner: number) {
+  const n = Math.max(3, Math.round(points));
+  const rx = w / 2;
+  const ry = h / 2;
+  const at = (a: number, k: number) => [w / 2 + Math.cos(a) * rx * k, h / 2 + Math.sin(a) * ry * k] as const;
+  const step = (Math.PI * 2) / n;
+  const start = -Math.PI / 2;
+  ctx.moveTo(...at(start, 1));
+  for (let i = 0; i < n; i++) {
+    const mid = at(start + step * (i + 0.5), Math.min(1, Math.max(0, inner)) * 0.9);
+    const next = at(start + step * (i + 1), 1);
+    ctx.quadraticCurveTo(mid[0], mid[1], next[0], next[1]);
+  }
+  ctx.closePath();
 }
 
 const glowColor = (l: Layer) =>
@@ -136,7 +164,8 @@ export function paintLayer(ctx: CanvasRenderingContext2D, l: Layer, frame: Frame
   ctx.translate(-w / 2, -h / 2);
   ctx.globalAlpha *= alpha;
   const k = deviceScale(ctx);
-  if (s.blur > 0.2) ctx.filter = `blur(${(s.blur * k).toFixed(2)}px)`;
+  const blur = s.blur + (l.blur ?? 0);
+  if (blur > 0.2) ctx.filter = `blur(${(blur * k).toFixed(2)}px)`;
 
   if (s.clip.some((v) => v > 0)) {
     ctx.beginPath();
@@ -144,7 +173,7 @@ export function paintLayer(ctx: CanvasRenderingContext2D, l: Layer, frame: Frame
     ctx.clip();
   }
 
-  const boxy = l.type === 'frame' || l.type === 'rect' || l.type === 'ellipse' || l.type === 'image';
+  const boxy = l.type === 'frame' || l.type === 'rect' || l.type === 'ellipse' || l.type === 'star' || l.type === 'image';
   if (boxy) {
     shapePath(ctx, l, w, h);
     if (s.glow > 0 || l.shadow) {

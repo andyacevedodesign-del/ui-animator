@@ -4,7 +4,7 @@
  * it by `resolveFrame(project, t)`, so a frame is a pure function of time.
  */
 
-export type LayerType = 'frame' | 'rect' | 'ellipse' | 'text' | 'image' | 'icon';
+export type LayerType = 'frame' | 'rect' | 'ellipse' | 'star' | 'text' | 'image' | 'icon';
 
 export interface GradientPaint {
   type: 'linear';
@@ -13,7 +13,14 @@ export interface GradientPaint {
   /** Degrees; 0 runs top to bottom, 90 left to right (matches the backgrounds). */
   angle: number;
 }
-export type Paint = { type: 'solid'; color: string } | GradientPaint;
+export interface RadialPaint {
+  type: 'radial';
+  /** Centre colour. */
+  from: string;
+  /** Edge colour. */
+  to: string;
+}
+export type Paint = { type: 'solid'; color: string } | GradientPaint | RadialPaint;
 
 export interface Stroke {
   color: string;
@@ -61,6 +68,13 @@ export interface Layer {
   shadow: Shadow | null;
   /** Lifts a top-level layer off the page in 3D camera shots (stage pixels toward the camera). */
   depth: number;
+  /** Static Gaussian layer blur, stage pixels. */
+  blur?: number;
+
+  // star
+  points?: number;
+  /** 0 = needle-thin concave rays, 1 = a fat polygon. */
+  inner?: number;
 
   // text
   text?: string;
@@ -201,6 +215,7 @@ export function makeLayer(type: LayerType, over: Partial<Layer> = {}): Layer {
     Object.assign(base, { fill: { type: 'solid', color: '#ffffff' }, radius: 12, children: [], clip: true, layout: defaultLayout() });
   }
   if (type === 'ellipse') base.w = base.h = 80;
+  if (type === 'star') Object.assign(base, { name: 'Sparkle', w: 120, h: 120, points: 4, inner: 0.15, fill: { type: 'radial', from: '#ffffff', to: '#f9a8d4' } });
   if (type === 'text') {
     Object.assign(base, {
       fill: null,

@@ -146,19 +146,17 @@ export function Timeline() {
             <span className="playhead" style={{ left: pct(time) }} />
           </div>
         </div>
-        {project.cursor.enabled && (
-          <div className="tl-row special">
-            <div className="tl-name" style={{ width: NAME_W }} onClick={() => useStore.getState().setRightTab('scene')}>
-              ➚ Cursor
-            </div>
-            <div className="tl-lane" onPointerDown={scrub}>
-              {project.cursor.steps.map((st) => (
-                <span key={st.id} className={`diamond ${st.click ? 'click' : ''}`} style={{ left: pct(st.at) }} onPointerDown={(e) => dragStep(e, st.id)} title={`${st.at.toFixed(2)}s${st.click ? ' · click' : ''}`} />
-              ))}
-              <span className="playhead" style={{ left: pct(time) }} />
-            </div>
+        <div className="tl-row special">
+          <div className="tl-name" style={{ width: NAME_W }} onClick={() => useStore.getState().setRightTab('cursor')} title="Open cursor controls">
+            ➚ Cursor {!project.cursor.enabled && <span className="muted small">off · click to set up</span>}
           </div>
-        )}
+          <div className="tl-lane" onPointerDown={scrub}>
+            {project.cursor.steps.map((st) => (
+              <span key={st.id} className={`diamond ${st.click ? 'click' : ''}`} style={{ left: pct(st.at) }} onPointerDown={(e) => dragStep(e, st.id)} title={`${st.at.toFixed(2)}s${st.click ? ' · click' : ''}`} />
+            ))}
+            <span className="playhead" style={{ left: pct(time) }} />
+          </div>
+        </div>
         {rows.map(({ layer, depth }) => (
           <div key={layer.id} className={`tl-row ${selection.includes(layer.id) ? 'on' : ''}`} style={{ height: ROW_H }}>
             <div className="tl-name" style={{ width: NAME_W, paddingLeft: 10 + depth * 12 }} onClick={() => useStore.getState().select([layer.id])}>

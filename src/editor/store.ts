@@ -10,7 +10,7 @@ import { parseProject } from './project';
 
 export type Mode = 'design' | 'animate';
 export type Tool = 'move' | 'frame' | 'rect' | 'ellipse' | 'text' | 'hand';
-export type RightTab = 'design' | 'animate' | 'scene';
+export type RightTab = 'design' | 'animate' | 'scene' | 'cursor';
 
 interface State {
   project: Project;
@@ -51,6 +51,7 @@ interface State {
 
   updateLayer(id: string, patch: Partial<Layer> | ((l: Layer) => void), key?: string): void;
   deleteSelection(): void;
+  clearLayers(): void;
   duplicateSelection(): void;
   copy(): void;
   paste(): void;
@@ -175,6 +176,14 @@ export const useStore = create<State>((set, get) => ({
     });
     set({ selection: [] });
   },
+  clearLayers() {
+    get().edit((p) => {
+      p.layers = [];
+      for (const s of p.cursor.steps) s.target = null;
+      p.camera.target = null;
+    });
+    set({ selection: [], selectedAnim: null, editingText: null, hover: null });
+  },
   duplicateSelection() {
     const { selection } = get();
     const fresh: string[] = [];
@@ -238,3 +247,11 @@ export const useStore = create<State>((set, get) => ({
     set({ selectedAnim: null });
   },
 }));
+
+/** Removes every layer, keeping the background, camera and cursor settings. Undoable. */
+export function clearAllLayers() {
+  const s = useStore.getState();
+  if (!s.project.layers.length) return;
+  if (!confirm('Remove all layers? The background and scene settings stay, and you can undo this.')) return;
+  s.clearLayers();
+}
